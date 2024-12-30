@@ -29,6 +29,16 @@ async function run() {
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
+
+    const assignmentCollection = client.db('assignmentHub').collection('assignment');
+
+    app.post('/createAssignment', async(req, res) =>{
+      const query = req.body;
+      const result = await assignmentCollection.insertOne(query);
+      res.send(result);
+    })
+
+
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
