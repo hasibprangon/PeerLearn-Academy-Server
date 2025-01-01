@@ -75,7 +75,7 @@ async function run() {
       res.send(result)
     });
 
-    app.get('/pending',  async(req, res) => {
+    app.get('/pending', async (req, res) => {
       const email = req?.query?.email;
       const query = {
         status: 'Pending',
@@ -94,6 +94,29 @@ async function run() {
           participant.imgUrl = result1?.imgUrl
         }
       }
+      res.send(result);
+    });
+
+    app.get('/pending/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await submittedAssignmentCollection.findOne(query);
+      res.send(result);
+    })
+
+    app.patch('/giveMark/:id', async (req, res) => {
+      const id = req.params.id;
+      const update = req.body;
+      const filter = { _id: new ObjectId(id) };
+      const option = { upsert: true };
+      const giveMark = {
+        $set: {
+          status: update.status,
+          obtainMarks: update.obtainMarks,
+          feedback: update.feedback
+        }
+      };
+      const result = await submittedAssignmentCollection.updateOne(filter, giveMark, option);
       res.send(result);
     })
 
