@@ -73,6 +73,28 @@ async function run() {
         }
       }
       res.send(result)
+    });
+
+    app.get('/pending',  async(req, res) => {
+      const email = req?.query?.email;
+      const query = {
+        status: 'Pending',
+        email: email
+      };
+      const result = await submittedAssignmentCollection.find(query).toArray();
+      for (const participant of result) {
+        const query1 = { _id: new ObjectId(participant.assignmentId) };
+        const result1 = await assignmentCollection.findOne(query1);
+        if (result1) {
+          participant.title = result1?.title;
+          participant.status = participant?.status;
+          participant.marks = result1?.marks;
+          participant.obtainMarks = participant?.obtainMarks;
+          participant.feedback = participant?.feedback;
+          participant.imgUrl = result1?.imgUrl
+        }
+      }
+      res.send(result);
     })
 
     app.post('/submittedAssignment', async (req, res) => {
