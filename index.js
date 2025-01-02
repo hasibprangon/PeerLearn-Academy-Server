@@ -33,6 +33,21 @@ async function run() {
 
     const submittedAssignmentCollection = client.db('assignmentHub').collection('submitted');
 
+
+    // assignment search 
+    app.get('/filter', async (req, res) => {
+      let query = {};
+      const difficulty = req.query.difficulty;
+      if(difficulty){
+        query = { difficulty: difficulty }
+      }
+      if(difficulty === 'all') {
+        query = {};
+      }
+      const result = await assignmentCollection.find(query).toArray();
+      res.send(result);
+    })
+
     // createAssignment
     app.get('/assignments', async (req, res) => {
       const cursor = assignmentCollection.find();
