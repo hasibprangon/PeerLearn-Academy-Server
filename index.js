@@ -47,9 +47,35 @@ async function run() {
       res.send(result);
     });
 
+    app.put('/update/:id', async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const option = { upsert: true };
+      const update = req.body;
+      const updatedInfo = {
+        $set: {
+          title: update?.title,
+          description: update?.description,
+          imgUrl: update?.imgUrl,
+          marks: update?.marks,
+          difficulty: update?.difficulty,
+          dueDate: update?.dueDate
+        }
+      }
+      const result = await assignmentCollection.updateOne(filter, updatedInfo, option);
+      res.send(result);
+    })
+
     app.post('/createAssignment', async (req, res) => {
       const query = req.body;
       const result = await assignmentCollection.insertOne(query);
+      res.send(result);
+    });
+
+    app.delete('/assignments/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await assignmentCollection.deleteOne(query);
       res.send(result);
     });
 
