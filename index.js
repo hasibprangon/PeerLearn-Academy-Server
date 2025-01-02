@@ -173,12 +173,17 @@ async function run() {
       res.send(result)
     });
 
-    app.get('/pending', async (req, res) => {
+    app.get('/pending', verifyToken, async (req, res) => {
       const email = req?.query?.email;
       const query = {
         status: 'Pending',
         email: email
       };
+
+      if(req?.user?.email !== req?.query?.email){
+        return res.status('403').send({message: 'Forbidden Access'})
+      }
+
       const result = await submittedAssignmentCollection.find(query).toArray();
       for (const participant of result) {
         const query1 = { _id: new ObjectId(participant.assignmentId) };
