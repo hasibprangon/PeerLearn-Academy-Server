@@ -1,14 +1,34 @@
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
+const cookieParser = require('cookie-parser');
+const jwt = require('jsonwebtoken')
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express();
 const port = process.env.PORT || 5000;
 
 //middleware
-app.use(cors());
+app.use(cors({
+  origin:['http://localhost:5173'],
+  credentials: true
+}));
 app.use(express.json());
+app.use(cookieParser())
 
+const verifyToken = (req, res, next) => {
+  const token = req?.cookies?.token;
+  if(!token) {
+    return res.status(401).send({message: 'Unauthorized Access'});
+  } 
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+    if(err){
+      return res.status(401).send({message: 'Unauthorized Access'});
+    }
+    req.user = decoded
+    next();
+  })
+  
+}
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.f7tqe.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
@@ -34,14 +54,35 @@ async function run() {
     const submittedAssignmentCollection = client.db('assignmentHub').collection('submitted');
 
 
+    // auth related api
+    app.post('/jwt', (req, res) => {
+      const user = req.body;
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '20h' })
+
+      res.cookie('token', token, {
+        httpOnly: true,
+        secure: false
+      })
+        .send({ success: true })
+    });
+
+    app.post('/logout', (req, res) => {
+      res.clearCookie('token', {
+        httpOnly: true,
+        secure: false
+      })
+      .send({success: true})
+    })
+
+
     // assignment search 
     app.get('/filter', async (req, res) => {
       let query = {};
       const difficulty = req.query.difficulty;
-      if(difficulty){
+      if (difficulty) {
         query = { difficulty: difficulty }
       }
-      if(difficulty === 'all') {
+      if (difficulty === 'all') {
         query = {};
       }
       const result = await assignmentCollection.find(query).toArray();
@@ -56,7 +97,7 @@ async function run() {
         : {};
       const result = await assignmentCollection.find(query).toArray();
       res.send(result);
-    });
+    });
 
 
     // createAssignment
@@ -108,9 +149,14 @@ async function run() {
 
     // submittedAssignment
 
-    app.get('/mySubmission', async (req, res) => {
+    app.get('/mySubmission', verifyToken, async (req, res) => {
       const email = req?.query?.email;
       const query = { email: email };
+
+      if(req?.user?.email !== req?.query?.email){
+        return res.status('403').send({message: 'Forbidden Access'})
+      }
+
       const result = await submittedAssignmentCollection.find(query).toArray();
       for (const participant of result) {
         const query1 = { _id: new ObjectId(participant.assignmentId) };
