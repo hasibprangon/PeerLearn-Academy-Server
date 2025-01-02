@@ -46,7 +46,18 @@ async function run() {
       }
       const result = await assignmentCollection.find(query).toArray();
       res.send(result);
-    })
+    });
+
+
+    app.get("/search", async (req, res) => {
+      const search = req?.query?.search || "";
+      const query = search.trim()
+        ? { title: { $regex: search, $options: "i" } }
+        : {};
+      const result = await assignmentCollection.find(query).toArray();
+      res.send(result);
+    });
+
 
     // createAssignment
     app.get('/assignments', async (req, res) => {
