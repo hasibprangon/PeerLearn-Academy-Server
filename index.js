@@ -9,7 +9,10 @@ const port = process.env.PORT || 5000;
 
 //middleware
 app.use(cors({
-  origin:['http://localhost:5173'],
+  origin:[
+    'http://localhost:5173',
+    'https://reliable-quokka-a64195.netlify.app'
+  ],
   credentials: true
 }));
 app.use(express.json());
@@ -44,9 +47,9 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
     // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
+    // await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
 
     const assignmentCollection = client.db('assignmentHub').collection('assignment');
@@ -61,7 +64,7 @@ async function run() {
 
       res.cookie('token', token, {
         httpOnly: true,
-        secure: false
+        secure: process.env.NODE_ENV === 'production'
       })
         .send({ success: true })
     });
@@ -69,7 +72,7 @@ async function run() {
     app.post('/logout', (req, res) => {
       res.clearCookie('token', {
         httpOnly: true,
-        secure: false
+        secure: process.env.NODE_ENV === 'production'
       })
       .send({success: true})
     })
