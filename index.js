@@ -114,7 +114,7 @@ async function run() {
       res.send(result);
     });
 
-    app.put('/update/:id', async (req, res) => {
+    app.put('/update/:id', verifyToken, async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
       const option = { upsert: true };
@@ -133,7 +133,7 @@ async function run() {
       res.send(result);
     })
 
-    app.post('/createAssignment', async (req, res) => {
+    app.post('/createAssignment', verifyToken, async (req, res) => {
       const query = req.body;
       const result = await assignmentCollection.insertOne(query);
       res.send(result);
@@ -174,15 +174,9 @@ async function run() {
     });
 
     app.get('/pending', verifyToken, async (req, res) => {
-      const email = req?.query?.email;
       const query = {
         status: 'Pending',
-        email: email
       };
-
-      if(req?.user?.email !== req?.query?.email){
-        return res.status('403').send({message: 'Forbidden Access'})
-      }
 
       const result = await submittedAssignmentCollection.find(query).toArray();
       for (const participant of result) {
@@ -200,14 +194,14 @@ async function run() {
       res.send(result);
     });
 
-    app.get('/pending/:id', async (req, res) => {
+    app.get('/pending/:id', verifyToken, async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await submittedAssignmentCollection.findOne(query);
       res.send(result);
     })
 
-    app.patch('/giveMark/:id', async (req, res) => {
+    app.patch('/giveMark/:id', verifyToken, async (req, res) => {
       const id = req.params.id;
       const update = req.body;
       const filter = { _id: new ObjectId(id) };
@@ -223,7 +217,7 @@ async function run() {
       res.send(result);
     })
 
-    app.post('/submittedAssignment', async (req, res) => {
+    app.post('/submittedAssignment', verifyToken, async (req, res) => {
       const query = req.body;
       const result = await submittedAssignmentCollection.insertOne(query);
       res.send(result);
