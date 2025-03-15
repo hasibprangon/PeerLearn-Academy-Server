@@ -11,7 +11,8 @@ const port = process.env.PORT || 5000;
 app.use(cors({
   origin:[
     'http://localhost:5173',
-    'https://reliable-quokka-a64195.netlify.app'
+    'https://peerlearn-academy.netlify.app'
+
   ],
   credentials: true
 }));
